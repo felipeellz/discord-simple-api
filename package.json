@@ -1,0 +1,14 @@
+{
+  "name": "meu-projeto",
+  "version": "1.0.0",
+  "description": "API simples para atualizar configurações no Discord",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel --prod"
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.0"
+  },
+  "devDependencies": {}
+}
