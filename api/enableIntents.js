@@ -1,3 +1,5 @@
+const { getClientIp } = require("request-ip")
+
 module.exports = async (req, res) => {
   const {
     applicationId,
@@ -117,9 +119,4 @@ module.exports = async (req, res) => {
       error: 'Erro ao fazer a requisição', details: error.message
     });
   }
-}
-
-function getClientIp(req) {
-const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-return ip.split(',')[0];
 }
