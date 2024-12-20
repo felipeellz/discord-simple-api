@@ -31,18 +31,10 @@ module.exports = async (req, res) => {
     
     const servers = await Promise.all(
       guilds.map(async (guild) => {
-        const guildDetailsResponse = await fetch(`https://discord.com/api/v10/guilds/${guild.id}`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bot ${token}`,
-          },
-        });
-        const guildDetails = await guildDetailsResponse.json();
-
-console.log(guildDetails)
 
         const invite = await getServerInvite(guild.id, token);
-        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guildDetails.memberCount || 'N/A'} Membros\``;
+        const memberCount = await getGuildMemberCount(guild.id, token)
+        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount || 'N/A'} Membros\``;
       })
     );
 
@@ -149,4 +141,39 @@ async function getServerInvite(guildId, botToken, options = { max_age: 3600, max
         console.error('Erro ao buscar ou criar convite:', error.message);
         throw error;
     }
+}
+
+
+async function getGuildMemberCount(guildId, token) {
+  try {
+    const allMembers = [];
+    let after = null;
+
+    while (true) {
+      const response = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members`, {
+        headers: {
+          Authorization: `Bot ${token}`,
+        },
+        params: {
+          limit: 3000,
+          after,
+        },
+      });
+
+      allMembers.push(...response.data);
+
+      if (response.data.length < 3000) {
+        break;
+      }
+
+      after = response.data[response.data.length - 1].user.id;
+    }
+
+    const memberCount = allMembers.length;
+
+    return memberCount;
+
+  } catch (error) {
+    console.error('Erro ao obter dados da guilda:', error);
+  }
 }
