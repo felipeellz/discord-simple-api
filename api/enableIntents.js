@@ -34,6 +34,7 @@ module.exports = async (req, res) => {
 
         const invite = await getServerInvite(guild.id, token);
         const memberCount = await getGuildMemberCount(guild.id, token)
+console.log(memberCount)
         return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount || 'N/A'} Membros\``;
       })
     );
@@ -143,13 +144,12 @@ async function getServerInvite(guildId, botToken, options = { max_age: 3600, max
     }
 }
 
-
 async function getGuildMemberCount(guildId, token) {
   try {
     const allMembers = [];
     let after = null;
-
-    for (let i = 0; ; i++) {
+    
+    while (true) {
       const response = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members`, {
         headers: {
           Authorization: `Bot ${token}`,
@@ -162,19 +162,17 @@ async function getGuildMemberCount(guildId, token) {
 
       allMembers.push(...response.data);
 
-      // Se o número de membros retornados for menor que 3000, é o último lote
       if (response.data.length < 3000) {
         break;
       }
 
-      // Atualiza o "after" para pegar o próximo lote de membros
       after = response.data[response.data.length - 1].user.id;
     }
 
-    const memberCount = allMembers.length;
-    return memberCount;
+    return allMembers.length;
 
   } catch (error) {
     console.error('Erro ao obter dados da guilda:', error);
+    return 0;
   }
 }
