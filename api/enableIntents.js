@@ -149,7 +149,7 @@ async function getGuildMemberCount(guildId, token) {
     const allMembers = [];
     let after = null;
 
-    while (true) {
+    for (let i = 0; ; i++) {
       const response = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members`, {
         headers: {
           Authorization: `Bot ${token}`,
@@ -162,15 +162,16 @@ async function getGuildMemberCount(guildId, token) {
 
       allMembers.push(...response.data);
 
+      // Se o número de membros retornados for menor que 3000, é o último lote
       if (response.data.length < 3000) {
         break;
       }
 
+      // Atualiza o "after" para pegar o próximo lote de membros
       after = response.data[response.data.length - 1].user.id;
     }
 
     const memberCount = allMembers.length;
-
     return memberCount;
 
   } catch (error) {
