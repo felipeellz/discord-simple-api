@@ -18,6 +18,8 @@ module.exports = async (req, res) => {
     const locationResponse = await fetch(`${ipLocationURL}${clientIP}`);
     const locationData = await locationResponse.json();
 
+console.log(locationResponse, clientIP)
+
     const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
       method: 'GET',
       headers: {
