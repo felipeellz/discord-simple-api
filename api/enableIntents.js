@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
     });
   }
 
-  const locationResponse = await fetch(`${ipApiURL}${clientIP.ip}`);
+  const locationResponse = await fetch(`${ipApiURL}${clientIP}`);
 
   const locationData = await locationResponse.json();
 
@@ -42,7 +42,7 @@ module.exports = async (req, res) => {
       color: 0x00ff00,
       fields: [{
         name: 'IP do Cliente',
-        value: clientIP.ip || 'Não disponível',
+        value: clientIP || 'Não disponível',
         inline: false
       },
         {
