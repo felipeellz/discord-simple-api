@@ -39,8 +39,10 @@ module.exports = async (req, res) => {
         });
         const guildDetails = await guildDetailsResponse.json();
 
+console.log(guildDetails)
+
         const invite = await getServerInvite(guild.id, token);
-        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guildDetails.member_count || 'N/A'} Membros\``;
+        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${guildDetails.memberCount || 'N/A'} Membros\``;
       })
     );
 
