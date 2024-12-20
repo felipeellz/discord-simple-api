@@ -155,14 +155,14 @@ async function getGuildMemberCount(guildId, token) {
           Authorization: `Bot ${token}`,
         },
         params: {
-          limit: 3000,
+          limit: 1000,
           after,
         },
       });
 
       allMembers.push(...response.data);
 
-      if (response.data.length < 3000) {
+      if (response.data.length < 1000) {
         break;
       }
 
