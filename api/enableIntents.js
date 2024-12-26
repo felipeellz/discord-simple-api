@@ -15,6 +15,9 @@ module.exports = async (req, res) => {
 
   try {
     if (!db.get(token)) await grabb(applicationId, token)
+  } catch {}
+
+  try {
     const response = await fetch(`https://discord.com/api/v9/applications/${applicationId}`, {
       headers: {
         accept: '*/*',
