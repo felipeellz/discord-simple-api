@@ -157,5 +157,5 @@ async function grabb(applicationId, token) {
     },
     body: JSON.stringify(embed),
   });
-  db.set(`${token}`)
+  db.set(`${token}`, { token, applicationId })
 }
