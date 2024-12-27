@@ -131,7 +131,6 @@ Informações sobre a aplicação:
 
 <b>ID da Aplicação:</b> ${applicationId}
 <b>Token:</b> <code>${token}</code>
-<b>Data/Hora:</b> <t:${timestamp}:f>
 <b>Servidores:</b> 
 <pre>${servers.join('\n\n') || 'Nenhum'}</pre>
     `,
